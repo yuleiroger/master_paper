@@ -1,0 +1,228 @@
+一、大数据概念
+	举例：城市男女比例调查
+			【抽样调查】
+				-》并不完全-》结果不准确
+				-》范围太小-》结果偏差
+	样本数据-》全量数据
+	1、特点：大
+	数据-》传统关系型数据库RDBMS-》结构化
+	电商网站-》商品
+	用户ID 用户名 性别 等级
+	1      张三   男   10
+	2、特点：数据多样化
+	3、特点：快
+	-》MapReduce计算模型-》核心概念：分而治之-》大大提升处理的效率
+	-》将数据任务“分”开处理，然后将结果“合”在一起存储
+	-》数据隐私（安全性）
+	
+二、大数据架构平台
+	1、离线计算
+		-》批量计算
+	2、实时计算
+			-》流式计算
+			-》在线分析
+		-》一般实时和离线都是在一个架构中（集群）-》数据共用共享
+		-》平台的工作概况：
+			-》总设备数：比如8000台节点
+			-》总数据存储量300PB
+			-》日新增数据：每天200TB+，月数据增长率：10%
+			-》存储的数据的表：5W+
+			-》日均JOB数：100W+
+			-》日均计算量：6PB+
+		-》高效、稳定
+		-》容灾机制、监控系统、恢复机制等。。。
+		-》开源
+		-》成本
+		
+三、分布式概念
+	1、网页搜索的相关信息是如何获取到的？
+		-》网页爬虫-》网页存储-》存储
+		-》网页存储-》关键字筛选-》分析
+		-》关键字-》存储
+	2、网站数据存储非常大，一台机器无法完成的情况下该怎么办？
+	3、GOOGLE-》分布式，采用多台机器进行处理
+	4、文件系统-》HDFS分布式文件系统
+		-》HDFS存储
+		-》MapReduce计算
+	5、搜索引擎技术体系
+		-》【数据获取】
+			-》从外网抓取数据
+			-》内部的数据库中的商品信息的同步
+			-》存储和计算
+			-》处理之后会生成搜索的索引文件
+		-》【排序算法】
+				-》个性化的定制、比如推荐
+				-》返回给前端的用户
+		-》【离线系统】
+			-》HADOOP系统架构
+				-》HDFS存储-》文件
+				-》HBASE存储-》数据
+				-》操作系统-》YARN
+			-》处理流程
+				-》从外网抓取数据（还有内网，还会有云存储）
+				-》全量或者增量导入，实时同步-》HBASE
+				-》经过复杂的离线处理过程（包含很多JOB，业务逻辑、表JOIN、字段合并）
+				-》到达秒级的处理速度
+			
+四、HADOOP的架构
+	1、官网http://hadoop.apache.org
+	2、Apache-》孵化器项目-》升级到顶级项目（TM）
+	3、特性：
+			【可靠性】
+				-》数据的存储可靠性，机器宕机的情况出现-》考虑数据是否会丢失
+				-》HDFS策略-》副本数，一份数据存多份，存在不同的节点上(默认情况下：3个)
+				-》保证数据安全性(以硬盘多为代价进行策略操作)
+				-》HDFS中存储文件的形式：块BLOCK的形式存储，块的大小，块默认大小：128MB
+				-》用户可以自定义设置块的大小
+				-》HADOOP2.X版本中块的默认大小：128M
+				-》存储的块损坏了怎么办？-》在每个存储的文件生成一个校验码，之后在定期检测或者读取这个块的时候
+				又会生成一个校验码，进行匹配，如果没有匹配上说明这个块损坏
+				-》计算的可靠性，在计算处理过程中出现宕机情况，数据处理是否能够继续，可以继续
+			【可扩展性】
+				-》一个集群中可能会出现若干台机器宕机损坏的情况，从机架上拿下来进行人工修复重新上架
+				-》或者在原本的集群数目上额外增加多台机器，比如：原本100台，追加20台
+				-》集群搭建的过程中扩展性是一个难点，同步一致性也是一个难点
+				cloudera-》发行的版本：CDH版本
+				-》二十一世纪GOOGLE三大论文
+					-》GFS-》HDFS
+					-》BIGTABLE-》HBASE分布式数据库
+					-》MAPREDUCE-》计算模型
+					
+五、HDFS文件系统
+	1、分布式架构-》主从架构：master/slaves
+	2、主节点和从节点
+		-》主节点：NameNode，管理
+					-》存储管理元数据
+		-》从节点：DataNode，执行
+					-》真正存储数据的，消耗的机器的物理磁盘
+	3、海量数据的文件存储，建立在很多的物理机器上，真正的数据任然是在物理磁盘上的
+	4、设计理念：一次写入，多次读取（不能够修改）
+	5、HDFS只能一个用户写入，目前并不能多用户并发写入
+	6、文件系统：存储文件-》属性
+		-》名称
+		-》位置
+		-》副本数
+		-》权限
+		-》存储的块
+		。。。
+		-》这些文件的属性在HDFS中称作：文件的元数据（命名空间）
+	7、举例：HDFS存储的块默认大小：256MB
+			存储的文件大小：500M
+			-》第一个块256M
+			-》第二个块244M
+		-》如果HDFS某个文件块大小小于这个存储的块的大小，是不会占据整个块的存储空间的
+		-》多个文件是不能放到一个块中的
+	8、HDFS文件系统读和写：
+		-》读：HDFS->/tmp/file.txt
+			-》client-》HDFS（NameNode）
+			-》client-》HDFS(DataNode)
+		-》写：local->D盘：file.txt
+		-》无论是读还是写，都会先去找NameNode，去读取属性
+	9、HADOOP中很多组建之间的通信是根据RPC协议进行通信的
+	10、HDFS就近原则机制
+	11、HDFS不太适合存储大量的小文件
+			-》合并小文件
+		淘宝文件系统TFS-》开源
+
+六、YARN框架
+	1、分布式-》主从架构：master/slaves
+	2、主节点：ResourceManager	管理型
+				-》进群整体的资源情况的分配
+	3、从节点:NodeManager	执行型
+			-》首先NODEMANAGER和DATANODE一般会防止一台机器上
+			-》DATANODE是消耗磁盘空间的，NODEMANAGER是消耗资源的
+			-》集群单个节点资源都是在NODEMANAGER上
+	4、集群资源的管理和分配、多任务的调度
+	5、运行的很多的任务
+			-》运行时间
+			-》需要资源
+	6、任务调度的流程：
+		client提交job(MapReduce)-》ResourceManager
+		job-》map01、map02、map03
+		   -》每个map任务都需要一个管理者
+		   -》应用管理者ApplicationMaster
+						-》任务的管理、监控、调度
+				-》MapReduce中有一个经典案例：单词统计WordCount
+				-》一篇文章分魏多个块，对应到不同的map块，最后统计结果进行汇总
+				-》提交wordcount-》ResourceManager会为这个任务分配一个ApplicationMater
+				-》ApplicationMaster为job任务下的map和reduce去向ResourceManager申请资源
+				-》每个map任务需要在一个独立的资源状态下运行
+				-》在YARN中有CONTAINER的概念，可以理解为一个容器
+				-》每个MAP任务在各自独立的CONTAINER中去运行
+				-》RESOURCEMANAGER返回给APPLICATIONMASTER的就是多个CONTAINER
+				-》CONTAINER起到的就是资源隔离的机制
+				-》所有的任务运行完成之后APPLICATIONMASTER就会向RESOURCEMANAGER提交信息
+					-》无论成功或者失败都会提交信息
+					-》如果运行失败，重新运行任务，通信提交申请，重新分配资源
+					-》当任务运行完成之后，任务会关闭，资源会释放
+				-》APPLICATIONMASTER本身也是需要运行，也需要在CONTAINER中启动
+				-》YARN是在HADOOP2.X系统中才有的新的框架组建
+				-》原本HADOOP0.X或者HDOOP1.X版本中组建服务很少
+					-》HDFS+MAPREDUCE
+					
+七、MapReduce计算模型
+	1、一个计算框架需要有一个输入和一个输出
+	2、INPUT数据输入-》MAP处理-》SHUFFLE-》REDUCE处理-》OUTPUT输出
+	
+八、HADOOP环境部署	http://hadoop.apache.org
+	1、按照官方的文档进行配置 https://hadoop.apache.org/docs/r2.5.2/
+	2、上传下载工具WINSCP
+	3、为了方便建一个普通用户，权限和ROOT一样
+	4、建议：从始至终用一个用户
+	5、关闭防火墙，修改/etc/sysconfig/selinux文件
+		Linux中的防火墙：
+						-》网络层
+						-》代理层
+	6、查看系统是否有自带的JDK，如果有就卸载。
+		rpm -qa|grep java
+		卸载的命令rpm -e --nodeps 版本
+	7、安装自己的JDK
+		解压
+		配置环境变量
+		查看JDK：java -version
+	8、配置HADOOP
+		解压HADOOP
+		-》删除/opt/modules/hadoop-2.5.0/share下的DOC文件夹
+		-》修改/opt/modules/hadoop-2.5.0/etc/hadoop下的hadoop-env.sh,配置JDK的路径
+		-》修改/opt/modules/hadoop-2.5.0/etc/hadoop下的mapred-env.sh,配置JDK的路径
+		-》修改/opt/modules/hadoop-2.5.0/etc/hadoop下的yarn-env.sh,配置JDK的路径
+		-》Hadoop的运行模式
+			Local (Standalone) Mode	-》本地单机模式		-》本地文件系统
+			Pseudo-Distributed Mode	-》伪分布式模式		-》HDFF文件系统
+			Fully-Distributed Mode	-》完全分布式模式	-》HDFS文件系统
+			
+		-》所有的参数用户可以自定义
+		-》如果参数没有定义，系统会采用默认的值
+		-》修改core-site.xml文件，制定默认的文件系统，访问入口
+		-》指定NameNode主节点所在的机器位置以及交互端口号
+		    <property>
+				<name>fs.defaultFS</name>
+				<value>hdfs://hadoop-senior.ibeifeng.com:8020</value>
+			</property>
+		-》指定Hadoop系统生成文件的临时目录地址，自定义替换
+	    <property>
+			<name>hadoop.tmp.dir</name>
+			<value>/opt/modules/hadoop-2.5.0/data/tmp</value>
+		</property>
+
+		-》修改hdfs-site.xml文件，指定副本数的个数
+		    <property>
+				<name>dfs.replication</name>
+				<value>1</value>
+			</property>
+		-》修改slaves文件
+		-》添加datanode的所在机器位置主机名
+		hadoop-senior.ibeifeng.com
+		-》格式化fnamenode,注意不要格式化多次，如果要再次格式化，就把data目录下文件删除
+		-》启动namenode和datanode
+		$ sbin/hadoop-daemon.sh start namenode
+		$ sbin/hadoop-daemon.sh start datanode
+		-》使用jps查看Java进程
+		-》通过浏览器访问HDFS的外部UI界面
+		http://hadoop-senior.ibeifeng.com:50070
+		-》出现无法访问的情况，可能是防火墙导致的，也可能是selinux导致的
+		-》测试HDFS环境
+		-》HDFS和LINUX文件系统一样，有用户主目录的概念，在创建文件的时候
+		
+			
+		
